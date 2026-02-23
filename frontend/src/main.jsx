@@ -7,7 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-    <GoogleOAuthProvider clientId="809592738523-mdntk7gq6ask8k7b8su2g87jdq8t31i2.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <VideoProvider>
           <App />
