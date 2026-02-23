@@ -1,8 +1,9 @@
 import express from "express";
-import {registerUser,loginUser,profileUser,logoutUser,getAllUsersAndAdmin,getAllUsers,getOneUser,updateUser,deleteUser,getAllAdmins,refreshAccessToken} from "../controllers/userController";
+import {googleLogin,registerUser,loginUser,profileUser,logoutUser,getAllUsersAndAdmin,getAllUsers,getOneUser,updateUser,deleteUser,getAllAdmins,refreshAccessToken} from "../controllers/userController";
 import {auth,isAdmin} from "../middlewares/authMiddleware";
 const router = express.Router();
 
+router.post("/google", googleLogin);
 router.post("/register",registerUser);
 router.post("/login",loginUser);
 router.post("/refreshToken",refreshAccessToken);

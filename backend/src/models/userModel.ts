@@ -3,9 +3,11 @@ import { Schema, model,HydratedDocument } from "mongoose";
 export interface IUser {
     name: string;
     email: string;
-    password: string;
+    password?: string;
     role: string;
     refreshToken?:string;
+    googleId?: string;     // 👈 add
+    isGoogleUser?: boolean; // 👈 add
 }
 export type IUserDocument = HydratedDocument<IUser>;
 
@@ -20,7 +22,14 @@ const userSchema = new Schema<IUser>({
     },
     password: {
         type: String,
-        required: true
+        required: false
+    },
+    googleId: {
+        type: String
+    },
+    isGoogleUser: {
+        type: Boolean,
+        default: false
     },
     role: {
         type: String,

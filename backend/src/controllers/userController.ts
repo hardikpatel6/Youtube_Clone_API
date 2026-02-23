@@ -11,6 +11,78 @@ dotenv.config();
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "patel";
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "hardik";
 
+import { verifyGoogleToken } from "../utils/googleAuth";
+
+const googleLogin = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { idToken } = req.body;
+
+        if (!idToken) {
+            res.status(400).json({ message: "Google token missing" });
+            return;
+        }
+
+        // 1️⃣ Verify Google Token
+        const payload = await verifyGoogleToken(idToken);
+
+        if (!payload) {
+            res.status(401).json({ message: "Invalid Google token" });
+            return;
+        }
+
+        const { sub, email, name } = payload;
+
+        if (!email) {
+            res.status(400).json({ message: "Google account has no email" });
+            return;
+        }
+
+        // 2️⃣ Check if user exists
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // 3️⃣ Create new Google user
+            user = await User.create({
+                name,
+                email,
+                googleId: sub,
+                isGoogleUser: true,
+                role: "user"
+            });
+        }
+
+        // 4️⃣ Generate tokens (reuse your existing logic)
+        const payloadJwt = {
+            sub: user._id.toString(),
+            email: user.email,
+            role: user.role
+        };
+
+        const accessToken = signAccessToken(payloadJwt);
+        const refreshToken = signRefreshToken(payloadJwt);
+
+        user.refreshToken = refreshToken;
+        await user.save();
+
+        setRefreshCookie(res, refreshToken);
+
+        res.status(200).json({
+            message: "Google login successful",
+            accessToken,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            },
+            role: user.role
+        });
+
+    } catch (error) {
+        console.error("Google login error:", error);
+        res.status(500).json({ message: "Google login failed" });
+    }
+};
+
 const registerUser = async (req: Request, res: Response): Promise<void> => {
     let { name, email, password, role } = req.body;
     if (!name || !email || !password) {
@@ -57,11 +129,16 @@ const loginUser = async (req: Request, res: Response): Promise<void> => {
             res.status(401).json({ message: "Invalid email or password." });
             return;
         }
-        const isPasswordValid = await bcrypt.compare(password, user.password.toString());
+        if (user.isGoogleUser) {
+            res.status(400).json({ message: "Use Google Sign-In for this account" });
+            return;
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password?.toString() || "");
         if (!isPasswordValid) {
             res.status(401).json({ message: "Invalid email or password." });
             return;
         }
+        
         const payload = { sub: user._id.toString(), email: user.email, role: user.role }
         const accessToken = signAccessToken(payload);
         const refreshToken = signRefreshToken(payload);
@@ -86,25 +163,25 @@ const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
-const profileUser = async (req : AuthRequest , res : Response ) : Promise <Response | void > => {
-    try{
-        if(!req.user){
-            return res.status(401).json({message : "Unauthorized"});
+const profileUser = async (req: AuthRequest, res: Response): Promise<Response | void> => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
         }
 
         return res.status(200).json({
-            user : {
-                id : req.user._id,
-                name : req.user.name,
-                email:req.user.email,
-                role : req.user.role,
-                createdAt : req.user.createdAt,
-                updatedAt : req.user.updatedAt,
+            user: {
+                id: req.user._id,
+                name: req.user.name,
+                email: req.user.email,
+                role: req.user.role,
+                createdAt: req.user.createdAt,
+                updatedAt: req.user.updatedAt,
             },
         });
-    } catch ( error ){
-        console.error("Profile error :",error);
-        return res.status(500).json({ message : "Server Error"});
+    } catch (error) {
+        console.error("Profile error :", error);
+        return res.status(500).json({ message: "Server Error" });
     }
 };
 
@@ -211,8 +288,8 @@ const getOneUser = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const userId = req.params.id;
 
-        if(req.user?.role !== 'admin' && req.user?._id !== userId){
-            res.status(403).json({message:"Access Denied"});
+        if (req.user?.role !== 'admin' && req.user?._id !== userId) {
+            res.status(403).json({ message: "Access Denied" });
             return;
         }
 
@@ -236,8 +313,8 @@ const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
         const userId = req.params.id;
         const updateData = req.body;
 
-        if(req.user?._id != userId){
-            res.status(403).json({message:"Access Denied"});
+        if (req.user?._id != userId) {
+            res.status(403).json({ message: "Access Denied" });
             return;
         }
 
@@ -279,4 +356,4 @@ const getAllAdmins = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
-export { registerUser, loginUser, profileUser , logoutUser, refreshAccessToken, getAllUsersAndAdmin, getAllUsers, getOneUser, updateUser, deleteUser, getAllAdmins };
+export { googleLogin, registerUser, loginUser, profileUser, logoutUser, refreshAccessToken, getAllUsersAndAdmin, getAllUsers, getOneUser, updateUser, deleteUser, getAllAdmins };
