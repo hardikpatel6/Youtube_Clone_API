@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unsubscribeVideo = exports.subscribeVideo = exports.deleteVideo = exports.dislikeVideo = exports.likeVideo = exports.editVideo = exports.getVideoById = exports.searchVideos = exports.showAllVideos = exports.uploadVideoFile = void 0;
+exports.incrementViewCount = exports.unsubscribeVideo = exports.subscribeVideo = exports.deleteVideo = exports.dislikeVideo = exports.likeVideo = exports.editVideo = exports.getVideoById = exports.searchVideos = exports.showAllVideos = exports.uploadVideoFile = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const cloudinary_1 = __importDefault(require("../config/cloudinary"));
@@ -73,7 +73,7 @@ const uploadVideoFile = async (req, res) => {
 exports.uploadVideoFile = uploadVideoFile;
 const showAllVideos = async (req, res) => {
     try {
-        const videos = await videoModel_1.default.find().populate("uploadedBy", "username email").sort({ createdAt: -1 }).select("title description thumbnail views likes dislikes uploadedBy");
+        const videos = await videoModel_1.default.find().populate("uploadedBy", "username email").sort({ createdAt: -1 }).select("title description thumbnail views likes dislikes uploadedBy createdAt viewedBy");
         return res.status(200).json(videos);
     }
     catch (err) {
@@ -307,3 +307,27 @@ const unsubscribeVideo = async (req, res) => {
     }
 };
 exports.unsubscribeVideo = unsubscribeVideo;
+const incrementViewCount = async (req, res) => {
+    try {
+        const userId = req.user?._id;
+        const videoId = req.params.videoId;
+        const video = await videoModel_1.default.findById(videoId);
+        if (!video)
+            return res.status(404).json({ message: "Video not found" });
+        // Ensure viewedBy exists
+        const viewedBy = video.viewedBy ?? [];
+        // Check if already viewed
+        const alreadyViewed = viewedBy.some((u) => u.toString() === userId?.toString());
+        if (userId && !alreadyViewed) {
+            video.viewedBy = [...viewedBy, userId];
+            await video.save();
+        }
+        return res.json({
+            views: video.viewedBy?.length ?? 0
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
+exports.incrementViewCount = incrementViewCount;

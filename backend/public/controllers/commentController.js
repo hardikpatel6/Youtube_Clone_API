@@ -117,21 +117,27 @@ const likeComment = async (req, res) => {
         const comment = await commentModel_1.default.findById(id);
         if (!comment)
             return res.status(404).json({ message: "Comment not found" });
-        // console.log("Liked By:",comment.likedBy);
         // Convert ObjectIds to strings for comparison
         const likedBy = comment.likedBy?.map(id => id.toString()) || [];
-        const dislikedBy = comment.dislikedBy?.map(id => id.toString()) || [];
-        // If already liked, remove like
-        if (likedBy.includes(userId.toString())) {
-            await commentModel_1.default.findByIdAndUpdate(id, { $pull: { likedBy: userId } });
-            return res.status(200).json({ message: "Like removed" });
+        const isLiked = likedBy.includes(userId.toString());
+        if (isLiked) {
+            const updatedComment = await commentModel_1.default.findByIdAndUpdate(id, { $pull: { likedBy: userId } }, { new: true });
+            return res.json({
+                message: "Like removed",
+                likesCount: updatedComment?.likedBy?.length ?? 0,
+                isLiked: false
+            });
         }
         // Remove dislike if present, then add like
-        await commentModel_1.default.findByIdAndUpdate(id, {
+        const updatedComment = await commentModel_1.default.findByIdAndUpdate(id, {
             $pull: { dislikedBy: userId },
-            $addToSet: { likedBy: userId },
+            $addToSet: { likedBy: userId }
+        }, { new: true });
+        res.json({
+            message: "Comment liked successfully",
+            likesCount: updatedComment?.likedBy?.length ?? 0,
+            isLiked: true
         });
-        res.status(200).json({ message: "Comment liked successfully" });
     }
     catch (error) {
         console.error("Error liking comment:", error);
@@ -148,19 +154,27 @@ const dislikeComment = async (req, res) => {
         const comment = await commentModel_1.default.findById(id);
         if (!comment)
             return res.status(404).json({ message: "Comment not found" });
-        const likedBy = comment.likedBy?.map(id => id.toString()) || [];
         const dislikedBy = comment.dislikedBy?.map(id => id.toString()) || [];
+        const isDisliked = dislikedBy.includes(userId.toString());
         // If already disliked, remove dislike
-        if (dislikedBy.includes(userId.toString())) {
-            await commentModel_1.default.findByIdAndUpdate(id, { $pull: { dislikedBy: userId } });
-            return res.status(200).json({ message: "Dislike removed" });
+        if (isDisliked) {
+            const updatedComment = await commentModel_1.default.findByIdAndUpdate(id, { $pull: { dislikedBy: userId } }, { new: true });
+            return res.json({
+                message: "Dislike removed",
+                dislikesCount: updatedComment?.dislikedBy?.length ?? 0,
+                isDisliked: false
+            });
         }
-        // Remove like if present, then add dislike
-        await commentModel_1.default.findByIdAndUpdate(id, {
-            $pull: { likedBy: userId },
-            $addToSet: { dislikedBy: userId },
+        // ADD DISLIKE (toggle on)
+        const updatedComment = await commentModel_1.default.findByIdAndUpdate(id, {
+            $pull: { likedBy: userId }, // remove like if exists
+            $addToSet: { dislikedBy: userId } // add dislike
+        }, { new: true });
+        res.json({
+            message: "Comment disliked successfully",
+            dislikesCount: updatedComment?.dislikedBy?.length ?? 0,
+            isDisliked: true
         });
-        res.status(200).json({ message: "Comment disliked successfully" });
     }
     catch (error) {
         console.error("Error disliking comment:", error);
