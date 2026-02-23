@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { signupApi } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
-
+import { Link } from "react-router-dom";
 const Signup = () => {
   const [form, setForm] = useState({
     name: "",
@@ -27,52 +27,101 @@ const Signup = () => {
     }
   };
 
+  // return (
+  //   <form onSubmit={handleSubmit}>
+  //     <h2>Signup</h2>
+  //     <input
+  //       name="name"
+  //       placeholder="Name"
+  //       onChange={handleChange}
+  //       required
+  //     />
+  //     <input
+  //       name="email"
+  //       placeholder="Email"
+  //       onChange={handleChange}
+  //       required
+  //     />
+  //     <input
+  //       name="password"
+  //       type="password"
+  //       placeholder="Password"
+  //       onChange={handleChange}
+  //       required
+  //     />
+  //     <div>
+  //       <label>
+  //         <input
+  //           type="radio"
+  //           name="role"
+  //           value="user"
+  //           checked={form.role === "user"}
+  //           onChange={handleChange}
+  //         />
+  //         User
+  //       </label>
+  //       <label>
+  //         <input
+  //           type="radio"
+  //           name="role"
+  //           value="admin"
+  //           checked={form.role === "admin"}
+  //           onChange={handleChange}
+  //         />
+  //         Admin
+  //       </label>
+  //     </div>
+  //     <button type="submit">Signup</button>
+  //   </form>
+  // // );
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Signup</h2>
-      <input
-        name="name"
-        placeholder="Name"
-        onChange={handleChange}
-        required
-      />
-      <input
-        name="email"
-        placeholder="Email"
-        onChange={handleChange}
-        required
-      />
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        onChange={handleChange}
-        required
-      />
-      <div>
-        <label>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-semibold text-center mb-6">
+          Create Account
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
-            type="radio"
-            name="role"
-            value="user"
-            checked={form.role === "user"}
+            name="name"
+            placeholder="Full Name"
             onChange={handleChange}
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
           />
-          User
-        </label>
-        <label>
           <input
-            type="radio"
-            name="role"
-            value="admin"
-            checked={form.role === "admin"}
+            name="email"
+            type="email"
+            placeholder="Email"
             onChange={handleChange}
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
           />
-          Admin
-        </label>
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+          />
+          <button
+            type="submit"
+            className="w-full bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700 transition"
+          >
+            Sign Up
+          </button>
+        </form>
+        <p className="text-center text-sm text-gray-600 mt-6">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-red-600 hover:underline font-medium"
+          >
+            Sign in
+          </Link>
+        </p>
       </div>
-      <button type="submit">Signup</button>
-    </form>
+    </div>
   );
 };
 

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { loginApi } from "../api/authApi";
+import { loginApi,googleLoginApi } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-
+import { GoogleLogin } from "@react-oauth/google";
 const Login = () => {
   const [form, setForm] = useState({
     email: "",
@@ -32,6 +32,21 @@ const Login = () => {
         err.response?.data?.message ||
         "Login failed"
       );
+    }
+  };
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const idToken = credentialResponse.credential;
+      console.log("Google ID Token:", idToken);
+      const res = await googleLoginApi(idToken);
+      console.log("Google Login Response:", res);
+      localStorage.setItem("accessToken", res.data.accessToken);
+      setUser(res.data.user);
+      setToken(res.data.accessToken);
+
+      navigate("/");
+    } catch (error) {
+      alert("Google login failed");
     }
   };
   return (
@@ -70,6 +85,19 @@ const Login = () => {
             Sign In
           </button>
         </form>
+         <div className="my-6 flex items-center justify-center">
+          <div className=" border-t"></div>
+          <span className="mx-3 text-gray-400 text-sm">OR</span>
+          <div className="border-t"></div>
+        </div>
+
+        {/* 🔥 Google Button */}
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => alert("Google Login Failed")}
+          />
+        </div>
         {/* Signup link */}
         <p className="text-center text-sm text-gray-600 mt-6">
           Don’t have an account?{" "}
