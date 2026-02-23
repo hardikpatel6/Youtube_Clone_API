@@ -37,7 +37,7 @@ const Navbar = () => {
       >
         <input
           type="text"
-          placeholder="Search"
+          placeholder="Search Based on Title"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 px-4 py-2 border border-gray-300 rounded-l-full focus:outline-none focus:ring-1 focus:ring-gray-400"
