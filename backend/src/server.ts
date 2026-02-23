@@ -13,7 +13,7 @@ const port: number | string = process.env.PORT || 4000;
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend URL
+    origin: ["http://localhost:5173","https://youtube-inky-seven.vercel.app"], // frontend URL
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
