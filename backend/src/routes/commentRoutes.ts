@@ -5,10 +5,10 @@ import { addComment,editComment,getCommentsByVideo,deleteComment,likeComment,dis
 const router = express.Router();
 
 router.post("/comment/:videoId",auth,addComment);
-router.post("/edit/:commentId",auth,editComment);
+router.put("/edit/:commentId",auth,editComment);
 router.get("/allComments/:videoId",auth,getCommentsByVideo);
 router.delete("/comment/:commentId",auth,deleteComment);
-router.put("/like/:id",auth,likeComment);
-router.put("/dislike/:id",auth,dislikeComment)
+router.post("/like/:id",auth,likeComment);
+router.post("/dislike/:id",auth,dislikeComment)
 
 export default router;

@@ -31,6 +31,15 @@ const commentSchema = new Schema<IComment>({
     dislikedBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
 }, { timestamps: true });
 
+commentSchema.virtual("likesCount").get(function () {
+    return this.likedBy?.length ?? 0;
+});
+
+commentSchema.virtual("dislikesCount").get(function () {
+    return this.dislikedBy?.length ?? 0;
+});
+
+commentSchema.set("toJSON", { virtuals: true });
 const Comment = model<IComment>('Comment', commentSchema);
 
 export default Comment;

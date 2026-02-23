@@ -1,25 +1,42 @@
-import axios from "axios";
-
-const apiUrl = import.meta.env.VITE_API_URL;
-
-const API = axios.create({
-  baseURL: apiUrl,
-  withCredentials: true
-});
-
-API.interceptors.request.use((config) => {
-
-  const token = localStorage.getItem("accessToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-
-});
+import API from "./axios";
 
 export const getVideosApi = () =>
   API.get("/videos/");
 
 export const getVideoByIdApi = (id) =>
   API.get(`/videos/${id}`);
+
+export const uploadVideoApi = (data) =>
+  API.post("/videos/upload-video", data, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+
+export const searchVideosApi = (query) =>
+  API.get(`/videos/search?title=${query}`);
+
+export const likeVideoApi = (id) =>
+  API.post(`/videos/like/${id}`);
+
+export const dislikeVideoApi = (id) =>
+  API.post(`/videos/dislike/${id}`);
+
+export const subscribeVideoApi = (videoId) =>
+  API.post(`/videos/subscribe/${videoId}`);
+
+export const unsubscribeVideoApi = (videoId) =>
+  API.post(`/videos/unsubscribe/${videoId}`);
+
+export const incrementViewCountApi = (videoId) =>
+  API.post(`/videos/addview/${videoId}`);
+
+export const editVideoApi = (videoId, data) =>
+  API.put(`/videos/edit/${videoId}`, data, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  });
+
+export const deleteVideoApi = (videoId) =>
+  API.delete(`/videos/delete/${videoId}`);

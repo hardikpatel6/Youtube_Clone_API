@@ -11,10 +11,11 @@ router.post("/upload-video", authMiddleware_1.auth, videoContoller_1.uploadVideo
 router.get("/", authMiddleware_1.auth, videoContoller_1.showAllVideos);
 router.get("/search", authMiddleware_1.auth, videoContoller_1.searchVideos);
 router.get("/:id", authMiddleware_1.auth, videoContoller_1.getVideoById);
-router.put("/:id", authMiddleware_1.auth, videoContoller_1.editVideo);
+router.put("/edit/:id", authMiddleware_1.auth, videoContoller_1.editVideo);
 router.post("/like/:id", authMiddleware_1.auth, videoContoller_1.likeVideo);
 router.post("/dislike/:id", authMiddleware_1.auth, videoContoller_1.dislikeVideo);
-router.delete("/:id", authMiddleware_1.auth, videoContoller_1.deleteVideo);
+router.post("/addview/:videoId", authMiddleware_1.auth, videoContoller_1.incrementViewCount);
+router.delete("/delete/:id", authMiddleware_1.auth, videoContoller_1.deleteVideo);
 router.post("/subscribe/:id", authMiddleware_1.auth, videoContoller_1.subscribeVideo);
 router.post("/unsubscribe/:id", authMiddleware_1.auth, videoContoller_1.unsubscribeVideo);
 exports.default = router;

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unsubscribeVideo = exports.subscribeVideo = exports.deleteVideo = exports.dislikeVideo = exports.likeVideo = exports.editVideo = exports.getVideoById = exports.searchVideos = exports.showAllVideos = exports.uploadVideoFile = void 0;
+exports.incrementViewCount = exports.unsubscribeVideo = exports.subscribeVideo = exports.deleteVideo = exports.dislikeVideo = exports.likeVideo = exports.editVideo = exports.getVideoById = exports.searchVideos = exports.showAllVideos = exports.uploadVideoFile = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const cloudinary_1 = __importDefault(require("../config/cloudinary"));
@@ -73,7 +73,7 @@ const uploadVideoFile = async (req, res) => {
 exports.uploadVideoFile = uploadVideoFile;
 const showAllVideos = async (req, res) => {
     try {
-        const videos = await videoModel_1.default.find().populate("uploadedBy", "username email").sort({ createdAt: -1 });
+        const videos = await videoModel_1.default.find().populate("uploadedBy", "username email").sort({ createdAt: -1 }).select("title description thumbnail views likes dislikes uploadedBy createdAt viewedBy");
         return res.status(200).json(videos);
     }
     catch (err) {
@@ -176,14 +176,14 @@ const likeVideo = async (req, res) => {
         // If user already liked, remove like (toggle off)
         if (likedBy.includes(userId.toString())) {
             await videoModel_1.default.findByIdAndUpdate(id, { $pull: { likedBy: userId } });
-            return res.status(200).json({ message: "Like removed" });
+            return res.status(200).json({ message: "Like removed", likes: likedBy.length - 1 });
         }
         // Otherwise: add like and remove dislike if present
         await videoModel_1.default.findByIdAndUpdate(id, {
             $pull: { dislikedBy: userId },
             $addToSet: { likedBy: userId },
         });
-        res.status(200).json({ message: "Video liked successfully" });
+        res.status(200).json({ message: "Video liked successfully", likes: likedBy.length + 1 });
     }
     catch (error) {
         console.error("Error liking video:", error);
@@ -205,14 +205,14 @@ const dislikeVideo = async (req, res) => {
         // If user already disliked, remove dislike (toggle off)
         if (dislikedBy.includes(userId.toString())) {
             await videoModel_1.default.findByIdAndUpdate(id, { $pull: { dislikedBy: userId } });
-            return res.status(200).json({ message: "Dislike removed" });
+            return res.status(200).json({ message: "Dislike removed", dislikes: dislikedBy.length - 1 });
         }
         // Otherwise: add dislike and remove like if present
         await videoModel_1.default.findByIdAndUpdate(id, {
             $pull: { likedBy: userId },
             $addToSet: { dislikedBy: userId },
         });
-        res.status(200).json({ message: "Video disliked successfully" });
+        res.status(200).json({ message: "Video disliked successfully", dislikes: dislikedBy.length + 1 });
     }
     catch (error) {
         console.error("Error disliking video:", error);
@@ -263,20 +263,17 @@ const subscribeVideo = async (req, res) => {
         const video = await videoModel_1.default.findById(id);
         if (!video)
             return res.status(404).json({ message: "Video not found" });
-        // ✅ now that 'video' exists, we can access its fields
         const subscribedBy = (video.subscribedBy ?? []).map((u) => u.toString());
-        const unsubscribedBy = (video.unsubscribedBy ?? []).map((u) => u.toString());
         // If already subscribed → unsubscribe
         if (subscribedBy.includes(userId.toString())) {
             await videoModel_1.default.findByIdAndUpdate(id, { $pull: { subscribedBy: userId } });
-            return res.status(200).json({ message: "Subscription removed" });
+            return res.status(200).json({ message: "Subscription removed", subscribers: subscribedBy.length - 1 });
         }
-        // Otherwise: remove from unsubscribed, then subscribe
+        // Otherwise: subscribe
         await videoModel_1.default.findByIdAndUpdate(id, {
-            $pull: { unsubscribedBy: userId },
             $addToSet: { subscribedBy: userId },
         });
-        res.status(200).json({ message: "Subscribed successfully" });
+        res.status(200).json({ message: "Subscribed successfully", subscribers: subscribedBy.length + 1 });
     }
     catch (error) {
         console.error("Error subscribing to video:", error);
@@ -294,18 +291,15 @@ const unsubscribeVideo = async (req, res) => {
         if (!video)
             return res.status(404).json({ message: "Video not found" });
         const subscribedBy = (video.subscribedBy ?? []).map((u) => u.toString());
-        const unsubscribedBy = (video.unsubscribedBy ?? []).map((u) => u.toString());
-        // If already unsubscribed → remove from list
-        if (unsubscribedBy.includes(userId.toString())) {
-            await videoModel_1.default.findByIdAndUpdate(id, { $pull: { unsubscribedBy: userId } });
-            return res.status(200).json({ message: "Unsubscription removed" });
+        // If already unsubscribed → do nothing
+        if (!subscribedBy.includes(userId.toString())) {
+            return res.status(200).json({ message: "Already unsubscribed", subscribers: subscribedBy.length });
         }
-        // Otherwise: remove from subscribed, then unsubscribe
+        // Otherwise: unsubscribe
         await videoModel_1.default.findByIdAndUpdate(id, {
             $pull: { subscribedBy: userId },
-            $addToSet: { unsubscribedBy: userId },
         });
-        res.status(200).json({ message: "Unsubscribed successfully" });
+        res.status(200).json({ message: "Unsubscribed successfully", subscribers: subscribedBy.length - 1 });
     }
     catch (error) {
         console.error("Error unsubscribing from video:", error);
@@ -313,3 +307,27 @@ const unsubscribeVideo = async (req, res) => {
     }
 };
 exports.unsubscribeVideo = unsubscribeVideo;
+const incrementViewCount = async (req, res) => {
+    try {
+        const userId = req.user?._id;
+        const videoId = req.params.videoId;
+        const video = await videoModel_1.default.findById(videoId);
+        if (!video)
+            return res.status(404).json({ message: "Video not found" });
+        // Ensure viewedBy exists
+        const viewedBy = video.viewedBy ?? [];
+        // Check if already viewed
+        const alreadyViewed = viewedBy.some((u) => u.toString() === userId?.toString());
+        if (userId && !alreadyViewed) {
+            video.viewedBy = [...viewedBy, userId];
+            await video.save();
+        }
+        return res.json({
+            views: video.viewedBy?.length ?? 0
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
+exports.incrementViewCount = incrementViewCount;

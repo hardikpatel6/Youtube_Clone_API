@@ -40,7 +40,7 @@ const videoSchema = new Schema<IVideo>(
     channelId: { type: Schema.Types.ObjectId, ref: "Channel" },
     likedBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
     dislikedBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
-    viewedBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    viewedBy: [{ type: Schema.Types.ObjectId, ref: "User" , default: [] }],
     subscribedBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
     unsubscribedBy: [{ type: Schema.Types.ObjectId, ref: "User" }]
   },

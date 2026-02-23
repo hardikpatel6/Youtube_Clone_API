@@ -14,7 +14,7 @@ const videoSchema = new mongoose_1.Schema({
     channelId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Channel" },
     likedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
     dislikedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
-    viewedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
+    viewedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User", default: [] }],
     subscribedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
     unsubscribedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }]
 }, { timestamps: true });

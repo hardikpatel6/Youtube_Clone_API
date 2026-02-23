@@ -30,21 +30,18 @@ const Signup = () => {
   return (
     <form onSubmit={handleSubmit}>
       <h2>Signup</h2>
-
       <input
         name="name"
         placeholder="Name"
         onChange={handleChange}
         required
       />
-
       <input
         name="email"
         placeholder="Email"
         onChange={handleChange}
         required
       />
-
       <input
         name="password"
         type="password"
@@ -52,8 +49,6 @@ const Signup = () => {
         onChange={handleChange}
         required
       />
-
-      {/* Role Selection */}
       <div>
         <label>
           <input
@@ -65,7 +60,6 @@ const Signup = () => {
           />
           User
         </label>
-
         <label>
           <input
             type="radio"
@@ -77,7 +71,6 @@ const Signup = () => {
           Admin
         </label>
       </div>
-
       <button type="submit">Signup</button>
     </form>
   );

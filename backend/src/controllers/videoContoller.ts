@@ -34,7 +34,7 @@ export const uploadVideoFile = async (req: Request, res: Response): Promise<Resp
     const videoReq = req as VideoUploadRequest;
 
     try {
-        const { title, description, category, tags} = videoReq.body;
+        const { title, description, category, tags } = videoReq.body;
 
         if (!videoReq.files || !videoReq.files.video) {
             return res.status(400).json({ message: "No video uploaded" });
@@ -103,7 +103,7 @@ export const uploadVideoFile = async (req: Request, res: Response): Promise<Resp
 
 export const showAllVideos = async (req: Request, res: Response) => {
     try {
-        const videos = await Video.find().populate("uploadedBy", "username email").sort({ createdAt: -1 });
+        const videos = await Video.find().populate("uploadedBy", "username email").sort({ createdAt: -1 }).select("title description thumbnail views likes dislikes uploadedBy createdAt viewedBy");
         return res.status(200).json(videos);
     }
     catch (err) {
@@ -198,68 +198,68 @@ export const editVideo = async (req: Request, res: Response) => {
 };
 
 export const likeVideo = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params; // video ID
-    const userId = req.user?._id;
+    try {
+        const { id } = req.params; // video ID
+        const userId = req.user?._id;
 
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+        if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const video = await Video.findById(id);
-    if (!video) return res.status(404).json({ message: "Video not found" });
+        const video = await Video.findById(id);
+        if (!video) return res.status(404).json({ message: "Video not found" });
 
-    // Convert ObjectIds to string for comparison
-    const likedBy = (video.likedBy ?? []).map((u: any) => u.toString());
-    const dislikedBy = (video.dislikedBy ?? []).map((u: any) => u.toString());
+        // Convert ObjectIds to string for comparison
+        const likedBy = (video.likedBy ?? []).map((u: any) => u.toString());
+        const dislikedBy = (video.dislikedBy ?? []).map((u: any) => u.toString());
 
-    // If user already liked, remove like (toggle off)
-    if (likedBy.includes(userId.toString())) {
-      await Video.findByIdAndUpdate(id, { $pull: { likedBy: userId } });
-      return res.status(200).json({ message: "Like removed" });
+        // If user already liked, remove like (toggle off)
+        if (likedBy.includes(userId.toString())) {
+            await Video.findByIdAndUpdate(id, { $pull: { likedBy: userId } });
+            return res.status(200).json({ message: "Like removed", likes: likedBy.length - 1 });
+        }
+
+        // Otherwise: add like and remove dislike if present
+        await Video.findByIdAndUpdate(id, {
+            $pull: { dislikedBy: userId },
+            $addToSet: { likedBy: userId },
+        });
+
+        res.status(200).json({ message: "Video liked successfully", likes: likedBy.length + 1 });
+    } catch (error) {
+        console.error("Error liking video:", error);
+        res.status(500).json({ message: "Server error" });
     }
-
-    // Otherwise: add like and remove dislike if present
-    await Video.findByIdAndUpdate(id, {
-      $pull: { dislikedBy: userId },
-      $addToSet: { likedBy: userId },
-    });
-
-    res.status(200).json({ message: "Video liked successfully" });
-  } catch (error) {
-    console.error("Error liking video:", error);
-    res.status(500).json({ message: "Server error" });
-  }
 };
 
 export const dislikeVideo = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params; // video ID
-    const userId = req.user?._id;
+    try {
+        const { id } = req.params; // video ID
+        const userId = req.user?._id;
 
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+        if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const video = await Video.findById(id);
-    if (!video) return res.status(404).json({ message: "Video not found" });
+        const video = await Video.findById(id);
+        if (!video) return res.status(404).json({ message: "Video not found" });
 
-    const likedBy = (video.likedBy ?? []).map((u: any) => u.toString());
-    const dislikedBy = (video.dislikedBy ?? []).map((u: any) => u.toString());
+        const likedBy = (video.likedBy ?? []).map((u: any) => u.toString());
+        const dislikedBy = (video.dislikedBy ?? []).map((u: any) => u.toString());
 
-    // If user already disliked, remove dislike (toggle off)
-    if (dislikedBy.includes(userId.toString())) {
-      await Video.findByIdAndUpdate(id, { $pull: { dislikedBy: userId } });
-      return res.status(200).json({ message: "Dislike removed" });
+        // If user already disliked, remove dislike (toggle off)
+        if (dislikedBy.includes(userId.toString())) {
+            await Video.findByIdAndUpdate(id, { $pull: { dislikedBy: userId } });
+            return res.status(200).json({ message: "Dislike removed", dislikes: dislikedBy.length - 1 });
+        }
+
+        // Otherwise: add dislike and remove like if present
+        await Video.findByIdAndUpdate(id, {
+            $pull: { likedBy: userId },
+            $addToSet: { dislikedBy: userId },
+        });
+
+        res.status(200).json({ message: "Video disliked successfully", dislikes: dislikedBy.length + 1 });
+    } catch (error) {
+        console.error("Error disliking video:", error);
+        res.status(500).json({ message: "Server error" });
     }
-
-    // Otherwise: add dislike and remove like if present
-    await Video.findByIdAndUpdate(id, {
-      $pull: { likedBy: userId },
-      $addToSet: { dislikedBy: userId },
-    });
-
-    res.status(200).json({ message: "Video disliked successfully" });
-  } catch (error) {
-    console.error("Error disliking video:", error);
-    res.status(500).json({ message: "Server error" });
-  }
 };
 
 export const deleteVideo = async (req: AuthenticatedRequest, res: Response) => {
@@ -300,66 +300,85 @@ export const deleteVideo = async (req: AuthenticatedRequest, res: Response) => {
 };
 
 export const subscribeVideo = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params; // video ID
-    const userId = req.user?._id;
+    try {
+        const { id } = req.params; // video ID
+        const userId = req.user?._id;
 
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+        if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const video = await Video.findById(id);
-    if (!video) return res.status(404).json({ message: "Video not found" });
+        const video = await Video.findById(id);
+        if (!video) return res.status(404).json({ message: "Video not found" });
 
-    // ✅ now that 'video' exists, we can access its fields
-    const subscribedBy = (video.subscribedBy ?? []).map((u: any) => u.toString());
-    const unsubscribedBy = (video.unsubscribedBy ?? []).map((u: any) => u.toString());
+        const subscribedBy = (video.subscribedBy ?? []).map((u: any) => u.toString());
 
-    // If already subscribed → unsubscribe
-    if (subscribedBy.includes(userId.toString())) {
-      await Video.findByIdAndUpdate(id, { $pull: { subscribedBy: userId } });
-      return res.status(200).json({ message: "Subscription removed" });
+        // If already subscribed → unsubscribe
+        if (subscribedBy.includes(userId.toString())) {
+            await Video.findByIdAndUpdate(id, { $pull: { subscribedBy: userId } });
+            return res.status(200).json({ message: "Subscription removed", subscribers: subscribedBy.length - 1 });
+        }
+
+        // Otherwise: subscribe
+        await Video.findByIdAndUpdate(id, {
+            $addToSet: { subscribedBy: userId },
+        });
+
+        res.status(200).json({ message: "Subscribed successfully", subscribers: subscribedBy.length + 1 });
+    } catch (error) {
+        console.error("Error subscribing to video:", error);
+        res.status(500).json({ message: "Server error" });
     }
-
-    // Otherwise: remove from unsubscribed, then subscribe
-    await Video.findByIdAndUpdate(id, {
-      $pull: { unsubscribedBy: userId },
-      $addToSet: { subscribedBy: userId },
-    });
-
-    res.status(200).json({ message: "Subscribed successfully" });
-  } catch (error) {
-    console.error("Error subscribing to video:", error);
-    res.status(500).json({ message: "Server error" });
-  }
 };
 
 export const unsubscribeVideo = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { id } = req.params; // video ID
-    const userId = req.user?._id;
+    try {
+        const { id } = req.params; // video ID
+        const userId = req.user?._id;
 
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+        if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const video = await Video.findById(id);
-    if (!video) return res.status(404).json({ message: "Video not found" });
+        const video = await Video.findById(id);
+        if (!video) return res.status(404).json({ message: "Video not found" });
 
-    const subscribedBy = (video.subscribedBy ?? []).map((u: any) => u.toString());
-    const unsubscribedBy = (video.unsubscribedBy ?? []).map((u: any) => u.toString());
+        const subscribedBy = (video.subscribedBy ?? []).map((u: any) => u.toString());
 
-    // If already unsubscribed → remove from list
-    if (unsubscribedBy.includes(userId.toString())) {
-      await Video.findByIdAndUpdate(id, { $pull: { unsubscribedBy: userId } });
-      return res.status(200).json({ message: "Unsubscription removed" });
+        // If already unsubscribed → do nothing
+        if (!subscribedBy.includes(userId.toString())) {
+            return res.status(200).json({ message: "Already unsubscribed", subscribers: subscribedBy.length });
+        }
+
+        // Otherwise: unsubscribe
+        await Video.findByIdAndUpdate(id, {
+            $pull: { subscribedBy: userId },
+        });
+
+        res.status(200).json({ message: "Unsubscribed successfully", subscribers: subscribedBy.length - 1 });
+    } catch (error) {
+        console.error("Error unsubscribing from video:", error);
+        res.status(500).json({ message: "Server error" });
     }
-
-    // Otherwise: remove from subscribed, then unsubscribe
-    await Video.findByIdAndUpdate(id, {
-      $pull: { subscribedBy: userId },
-      $addToSet: { unsubscribedBy: userId },
-    });
-
-    res.status(200).json({ message: "Unsubscribed successfully" });
-  } catch (error) {
-    console.error("Error unsubscribing from video:", error);
-    res.status(500).json({ message: "Server error" });
-  }
 };
+export const incrementViewCount = async (req: AuthenticatedRequest,res: Response) => {
+    try {
+        const userId = req.user?._id;
+        const videoId = req.params.videoId;
+        const video = await Video.findById(videoId);
+        if (!video)
+            return res.status(404).json({ message: "Video not found" });
+        // Ensure viewedBy exists
+        const viewedBy : any[] = video.viewedBy ?? [];
+        // Check if already viewed
+        const alreadyViewed = viewedBy.some(
+            (u) => u.toString() === userId?.toString()
+        );
+        if (userId && !alreadyViewed) {
+            video.viewedBy = [...viewedBy, userId];
+            await video.save();
+        }
+        return res.json({
+            views: video.viewedBy?.length ?? 0
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
+};
+

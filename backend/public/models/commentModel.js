@@ -53,5 +53,12 @@ const commentSchema = new mongoose_1.Schema({
     likedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
     dislikedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
 }, { timestamps: true });
+commentSchema.virtual("likesCount").get(function () {
+    return this.likedBy?.length ?? 0;
+});
+commentSchema.virtual("dislikesCount").get(function () {
+    return this.dislikedBy?.length ?? 0;
+});
+commentSchema.set("toJSON", { virtuals: true });
 const Comment = (0, mongoose_1.model)('Comment', commentSchema);
 exports.default = Comment;

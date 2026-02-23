@@ -91,7 +91,6 @@ const loginUser = async (req, res) => {
 exports.loginUser = loginUser;
 const profileUser = async (req, res) => {
     try {
-        console.log(req.user);
         if (!req.user) {
             return res.status(401).json({ message: "Unauthorized" });
         }
