@@ -3,6 +3,7 @@ import VideoCard from "./VideoCard";
 
 const VideoGrid = () => {
   const { videos, loading , notFound } = useVideos();
+  console.log("videos",videos);
   if (loading)
     return <p>Loading videos...</p>;
   if (notFound)

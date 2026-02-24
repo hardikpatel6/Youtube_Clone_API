@@ -30,6 +30,7 @@ const VideoPlayer = () => {
             try {
                 const res = await getVideoByIdApi(id);
                 const data = res.data;
+                const like = await incrementViewCountApi(id);
                 setVideo(data);
                 setLikeCount(data.likesCount);
                 setDislikeCount(data.dislikesCount);
