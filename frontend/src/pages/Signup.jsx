@@ -10,25 +10,8 @@ const Signup = () => {
     password: "",
     role: "user", // ✅ default role
   });
-  const [error, setError] = useState;
   const navigate = useNavigate();
-  const validateEmail = (value) => {
-    if (!value) {
-      return "Email is required";
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-    if (!emailRegex.test(value)) {
-      return "Invalid email format";
-    }
-    return "";
-  };
   const handleChange = (e) => {
-    const error = validateEmail(e.target.email);
-    if (error) {
-      setEmailError(error);
-      return;
-    }
-    setEmailError("");
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
