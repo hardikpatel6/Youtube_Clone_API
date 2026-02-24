@@ -11,6 +11,7 @@ import {
 } from "../api/videoApi";
 import { useAuth } from "../context/AuthContext";
 import CommentSection from "../component/CommentSection";
+import { getOneUser } from "../api/authApi";
 const VideoPlayer = () => {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -25,6 +26,8 @@ const VideoPlayer = () => {
     const [likeCount, setLikeCount] = useState(0);
     const [dislikeCount, setDislikeCount] = useState(0);
     const [subscriberCount, setSubscriberCount] = useState(0);
+    const [videoUploadedUser,setVideoUploadedUser] = useState("");
+
     useEffect(() => {
         const fetchVideo = async () => {
             try {
@@ -32,6 +35,8 @@ const VideoPlayer = () => {
                 const data = res.data;
                 const like = await incrementViewCountApi(id);
                 setVideo(data);
+                const videoUploaderName = await getOneUser(video?.uploadedBy?._id);
+                console.log("video uploader data",videoUploadedUser);
                 setLikeCount(data.likesCount);
                 setDislikeCount(data.dislikesCount);
                 setSubscriberCount(data.subscribersCount);
