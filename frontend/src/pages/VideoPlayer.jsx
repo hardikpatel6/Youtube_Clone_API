@@ -46,6 +46,7 @@ const VideoPlayer = () => {
         fetchVideo();
     }, [id]);
     const handleLike = useCallback(async () => {
+        if (!video?._id) return;
         try {
             const res = await likeVideoApi(video._id);
             const newLikes = res.data.likes;
@@ -60,6 +61,7 @@ const VideoPlayer = () => {
         }
     }, [video, isDisliked]);
     const handleDislike = useCallback(async () => {
+         if (!video?._id) return;
         try {
             const res = await dislikeVideoApi(video._id);
             const newDislikes = res.data.dislikes;
@@ -74,6 +76,7 @@ const VideoPlayer = () => {
         }
     }, [video, isLiked]);
     const handleSubscribe = useCallback( async () => {
+         if (!video?._id) return;
         try {
             const res = await subscribeVideoApi(video._id);
             const data = res.data;
@@ -84,6 +87,7 @@ const VideoPlayer = () => {
         }
     }, [video]);
     const handleUnsubscribe = useCallback( async () => {
+         if (!video?._id) return;
         try {
             const res = await unsubscribeVideoApi(video._id);
             setIsSubscribed(false);
@@ -93,9 +97,11 @@ const VideoPlayer = () => {
         }
     }, [video]);
     const handleEdit = useCallback( () => {
+         if (!video?._id) return;
         navigate(`/videos/edit/${video._id}`);
     }, [navigate, video]);
     const handleDelete = useCallback(async () => {
+         if (!video?._id) return;
         if (window.confirm("Are you sure you want to delete this video?")) {
             try {
                 await deleteVideoApi(video._id);
@@ -104,9 +110,10 @@ const VideoPlayer = () => {
             } catch (error) {
                 console.error(error);
                 alert("Failed to delete video");
-            }''
+            }
         }
     }, [navigate, video]);
+    const isOwner = video?.uploadedBy?._id && user?.id && video.uploadedBy._id === user.id;
     if (loading)
         return <div className="text-center mt-10">Loading...</div>;
     if (!video)
@@ -121,13 +128,13 @@ const VideoPlayer = () => {
                         </video>
                     </div>
                     {
-                        video?.uploadedBy._id === user?.id && (
+                       isOwner && (
                             <button className={`mt-3 px-4 py-2 text-white rounded ${isLiked ? "bg-blue-700" : "bg-blue-500"
                                 }`} onClick={handleEdit}>Edit Video </button>
                         )
                     }
                     {
-                        video?.uploadedBy._id === user?.id && (
+                        isOwner && (
                             <button className={`ml-2 mt-3 px-4 py-2 text-white rounded ${isLiked ? "bg-red-700" : "bg-red-500"
                                 }`} onClick={handleDelete}>Delete Video </button>
                         )
