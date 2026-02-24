@@ -16,8 +16,9 @@ const VideoPlayer = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { user } = useAuth();
-    console.log("user", user?.id);
+    console.log("user", user);
     const [video, setVideo] = useState(null);
+    console.log("video data",video);
     console.log("video", video?.uploadedBy?._id);
     const [loading, setLoading] = useState(true);
     const [isLiked, setIsLiked] = useState(false);
@@ -35,8 +36,6 @@ const VideoPlayer = () => {
                 const data = res.data;
                 const like = await incrementViewCountApi(id);
                 setVideo(data);
-                const videoUploaderName = await getOneUser(video?.uploadedBy?._id);
-                console.log("video uploader data",videoUploadedUser);
                 setLikeCount(data.likesCount);
                 setDislikeCount(data.dislikesCount);
                 setSubscriberCount(data.subscribersCount);
@@ -131,13 +130,13 @@ const VideoPlayer = () => {
                         </video>
                     </div>
                     {
-                        video.uploadedBy._id === user?.id && (
+                        video?.uploadedBy._id === user?.id && (
                             <button className={`mt-3 px-4 py-2 text-white rounded ${isLiked ? "bg-blue-700" : "bg-blue-500"
                                 }`} onClick={handleEdit}>Edit Video </button>
                         )
                     }
                     {
-                        video.uploadedBy._id === user?.id && (
+                        video?.uploadedBy._id === user?.id && (
                             <button className={`ml-2 mt-3 px-4 py-2 text-white rounded ${isLiked ? "bg-red-700" : "bg-red-500"
                                 }`} onClick={handleDelete}>Delete Video </button>
                         )
@@ -179,7 +178,7 @@ const VideoPlayer = () => {
                     </div>
                 </div>
             </div>
-            <CommentSection videoId={video._id} />
+            <CommentSection videoId={video?._id} />
         </>
     );
 };
