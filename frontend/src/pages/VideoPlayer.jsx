@@ -133,13 +133,13 @@ const VideoPlayer = () => {
                         )
                     }
                     <h1 className="text-xl font-semibold mt-4">
-                        <p>Title : </p>{video.title}
+                        Title : {video.title}
                     </h1>
                     <p className="text-gray-600 mt-2">
-                        <p>Description : </p>{video.description}
+                        Description : {video.description}
                     </p>
-                    <p className="text-gray-500 text-sm mt-1">
-                        {video?.uploadedBy?.name}
+                    <p className="text-black-600 text-sm mt-2">
+                        Video Uploaded By : {video?.uploadedBy?.name}
                     </p>
                     <div className="flex gap-4 mt-4">
                         <button
