@@ -114,6 +114,10 @@ const Upload = () => {
             <option value="Education">Education</option>
             <option value="Gaming">Gaming</option>
             <option value="Technology">Technology</option>
+            <option value="Sports">Sports</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="News">News</option>
+            <option value="others">Others</option>
           </select>
           {formData.tags.map((tag, index) => (
             <input
