@@ -16,11 +16,7 @@ const VideoPlayer = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { user } = useAuth();
-    console.log("user", user);
     const [video, setVideo] = useState(null);
-    console.log("video data",video);
-    console.log("video", video?.uploadedBy?._id);
-    console.log("video uploader name : ", video?.uploadedBy?.name);
     const [loading, setLoading] = useState(true);
     const [isLiked, setIsLiked] = useState(false);
     const [isDisliked, setIsDisliked] = useState(false);
@@ -34,7 +30,6 @@ const VideoPlayer = () => {
             try {
                 const res = await getVideoByIdApi(id);
                 const data = res.data;
-                const like = await incrementViewCountApi(id);
                 setVideo(data);
                 setLikeCount(data.likesCount);
                 setDislikeCount(data.dislikesCount);
@@ -55,9 +50,7 @@ const VideoPlayer = () => {
             const res = await likeVideoApi(video._id);
             const newLikes = res.data.likes;
             setLikeCount(newLikes);
-            // toggle state
             setIsLiked(prev => !prev);
-            // remove dislike if exists
             if (isDisliked) {
                 setIsDisliked(false);
                 setDislikeCount(prev => prev - 1);
@@ -100,8 +93,6 @@ const VideoPlayer = () => {
         }
     }, [video]);
     const handleEdit = useCallback( () => {
-        // navigate to edit page
-        console.log("Navigate to edit page for video id:", video._id);
         navigate(`/videos/edit/${video._id}`);
     }, [navigate, video]);
     const handleDelete = useCallback(async () => {
@@ -142,13 +133,13 @@ const VideoPlayer = () => {
                         )
                     }
                     <h1 className="text-xl font-semibold mt-4">
-                        {video.title}
+                        <p>Title : </p>{video.title}
                     </h1>
                     <p className="text-gray-600 mt-2">
-                        {video.description}
+                        <p>Description : </p>{video.description}
                     </p>
                     <p className="text-gray-500 text-sm mt-1">
-                        {video.uploadedBy.email}
+                        {video?.uploadedBy?.name}
                     </p>
                     <div className="flex gap-4 mt-4">
                         <button

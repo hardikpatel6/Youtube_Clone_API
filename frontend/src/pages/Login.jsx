@@ -37,13 +37,10 @@ const Login = () => {
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const idToken = credentialResponse.credential;
-      console.log("Google ID Token:", idToken);
       const res = await googleLoginApi(idToken);
-      console.log("Google Login Response:", res);
       localStorage.setItem("accessToken", res.data.accessToken);
       setUser(res.data.user);
       setToken(res.data.accessToken);
-
       navigate("/");
     } catch (error) {
       alert("Google login failed");
