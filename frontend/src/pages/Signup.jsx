@@ -14,6 +14,13 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
+    if(e.target.name !== "name" && e.target.name !== "email" && e.target.name !== "password" && e.target.name !== "role") {
+      return;
+    }
+    if(e.target.name === "email" && !e.target.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      alert("Invalid email address");
+      return;
+    }
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 

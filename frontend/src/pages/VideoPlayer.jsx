@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState , useCallback } from "react";
 import { useParams , useNavigate } from "react-router-dom";
 import {
     getVideoByIdApi,
@@ -46,7 +46,7 @@ const VideoPlayer = () => {
         };
         fetchVideo();
     }, [id]);
-    const handleLike = async () => {
+    const handleLike = useCallback(async () => {
         try {
             const res = await likeVideoApi(video._id);
             const newLikes = res.data.likes;
@@ -61,8 +61,8 @@ const VideoPlayer = () => {
         } catch (error) {
             console.error(error);
         }
-    };
-    const handleDislike = async () => {
+    }, [video, isDisliked]);
+    const handleDislike = useCallback(async () => {
         try {
             const res = await dislikeVideoApi(video._id);
             const newDislikes = res.data.dislikes;
@@ -75,8 +75,8 @@ const VideoPlayer = () => {
         } catch (error) {
             console.error(error);
         }
-    };
-    const handleSubscribe = async () => {
+    }, [video, isLiked]);
+    const handleSubscribe = useCallback( async () => {
         try {
             const res = await subscribeVideoApi(video._id);
             const data = res.data;
@@ -85,8 +85,8 @@ const VideoPlayer = () => {
         } catch (error) {
             console.error(error);
         }
-    };
-    const handleUnsubscribe = async () => {
+    }, [video]);
+    const handleUnsubscribe = useCallback( async () => {
         try {
             const res = await unsubscribeVideoApi(video._id);
             setIsSubscribed(false);
@@ -94,13 +94,13 @@ const VideoPlayer = () => {
         } catch (error) {
             console.error(error);
         }
-    };
-    const handleEdit = () => {
+    }, [video]);
+    const handleEdit = useCallback( () => {
         // navigate to edit page
         console.log("Navigate to edit page for video id:", video._id);
         navigate(`/videos/edit/${video._id}`);
-    };
-    const handleDelete = async () => {
+    }, [navigate, video]);
+    const handleDelete = useCallback(async () => {
         if (window.confirm("Are you sure you want to delete this video?")) {
             try {
                 await deleteVideoApi(video._id);
@@ -109,9 +109,9 @@ const VideoPlayer = () => {
             } catch (error) {
                 console.error(error);
                 alert("Failed to delete video");
-            }
+            }''
         }
-    };
+    }, [navigate, video]);
     if (loading)
         return <div className="text-center mt-10">Loading...</div>;
     if (!video)
