@@ -159,7 +159,7 @@ export const searchVideos = async (req: Request, res: Response) => {
 export const getVideoById = async (req: Request, res: Response) => {
     try {
         const videoId = req.params.id;
-        const video = await Video.findById(videoId).populate("uploadedBy", "username email");
+        const video = await Video.findById(videoId).populate("uploadedBy", "name email");
         if (!video) {
             return res.status(404).json({ message: "Video not found" });
         }
