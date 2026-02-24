@@ -4,6 +4,7 @@ import User from "../models/userModel";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import validator from "validator";
 import { blacklistToken } from "../utils/tokenBlacklist";
 import { decodedUser, setRefreshCookie, signAccessToken, signRefreshToken } from "../utils/tokenUtils";
 import { AuthRequest } from "../middlewares/authMiddleware";
@@ -88,6 +89,17 @@ const registerUser = async (req: Request, res: Response): Promise<void> => {
     if (!name || !email || !password) {
         res.status(400).send("All Fields Are Required ");
     }
+    
+    // 2️⃣ Normalize email
+    email = email.toLowerCase().trim();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+\.(com|in|gov)$/;
+    // 3️⃣ Validate email format (strong validation)
+     if (!emailRegex.test(email)) {
+      res.status(400).json({
+        message: "Email must contain @ and end with .com, .in, or .gov",
+      });
+      return;
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
         const userData: IUserDocument | null = await User.findOne({ email: email });
@@ -100,7 +112,6 @@ const registerUser = async (req: Request, res: Response): Promise<void> => {
                 password: hashedPassword,
                 role: role
             });
-
             const newUser = await User.insertOne(user);
             res.status(201).json({
                 message: "User Registered Successfully",
@@ -138,7 +149,7 @@ const loginUser = async (req: Request, res: Response): Promise<void> => {
             res.status(401).json({ message: "Invalid email or password." });
             return;
         }
-        
+
         const payload = { sub: user._id.toString(), email: user.email, role: user.role }
         const accessToken = signAccessToken(payload);
         const refreshToken = signRefreshToken(payload);

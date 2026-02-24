@@ -10,17 +10,25 @@ const Signup = () => {
     password: "",
     role: "user", // ✅ default role
   });
-
+  const [error, setError] = useState;
   const navigate = useNavigate();
-
+  const validateEmail = (value) => {
+    if (!value) {
+      return "Email is required";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRegex.test(value)) {
+      return "Invalid email format";
+    }
+    return "";
+  };
   const handleChange = (e) => {
-    if(e.target.name !== "name" && e.target.name !== "email" && e.target.name !== "password" && e.target.name !== "role") {
+    const error = validateEmail(e.target.email);
+    if (error) {
+      setEmailError(error);
       return;
     }
-    if(e.target.name === "email" && !e.target.value.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      alert("Invalid email address");
-      return;
-    }
+    setEmailError("");
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
