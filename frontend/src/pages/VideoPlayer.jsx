@@ -20,6 +20,7 @@ const VideoPlayer = () => {
     const [video, setVideo] = useState(null);
     console.log("video data",video);
     console.log("video", video?.uploadedBy?._id);
+    console.log("video uploader name : ", video?.uploadedBy?.name);
     const [loading, setLoading] = useState(true);
     const [isLiked, setIsLiked] = useState(false);
     const [isDisliked, setIsDisliked] = useState(false);
@@ -27,7 +28,6 @@ const VideoPlayer = () => {
     const [likeCount, setLikeCount] = useState(0);
     const [dislikeCount, setDislikeCount] = useState(0);
     const [subscriberCount, setSubscriberCount] = useState(0);
-    const [videoUploadedUser,setVideoUploadedUser] = useState("");
 
     useEffect(() => {
         const fetchVideo = async () => {
