@@ -13,7 +13,7 @@ const port: number | string = process.env.PORT || 4000;
 
 app.use(
   cors({
-    origin: ["http://localhost:5173","https://youtube-clone-api-sigma.vercel.app"], // frontend URL
+    origin: ["http://localhost:5173","http://localhost:5175","https://youtube-clone-api-sigma.vercel.app"], // frontend URL
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
