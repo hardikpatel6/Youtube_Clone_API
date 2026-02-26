@@ -10,15 +10,15 @@ const CategoriesBar = () => {
     ];
 
     return (
-        <div className="sticky top-[60px] z-30 bg-white px-4 py-3 border-b border-gray-100 flex items-center overflow-x-auto custom-scrollbar no-scrollbar w-full">
+        <div className="sticky top-0 z-30 bg-white bg-opacity-95 backdrop-blur-sm px-4 py-3 border-b border-gray-100 flex items-center overflow-x-auto w-full">
             <div className="flex gap-3">
                 {categories.map((category) => (
                     <button
                         key={category}
                         onClick={() => setActiveCategory(category)}
                         className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeCategory === category
-                                ? "bg-black text-white"
-                                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                            ? "bg-black text-white"
+                            : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                             }`}
                     >
                         {category}

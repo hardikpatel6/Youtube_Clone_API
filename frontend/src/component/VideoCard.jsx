@@ -10,16 +10,12 @@ const VideoCard = ({ video }) => {
       className="flex flex-col gap-3 cursor-pointer group"
     >
       {/* Thumbnail */}
-      <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-gray-200">
+      <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-gray-200 flex-shrink-0">
         <img
           src={video.thumbnail}
           alt={video.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        {/* Placeholder Duration since it doesn't exist in data usually */}
-        <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs font-medium px-1.5 py-0.5 rounded">
-          10:24
-        </div>
       </div>
 
       {/* Details */}

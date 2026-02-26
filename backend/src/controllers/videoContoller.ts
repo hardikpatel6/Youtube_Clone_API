@@ -103,7 +103,7 @@ export const uploadVideoFile = async (req: Request, res: Response): Promise<Resp
 
 export const showAllVideos = async (req: Request, res: Response) => {
     try {
-        const videos = await Video.find().populate("uploadedBy", "username email").sort({ createdAt: -1 }).select("title description thumbnail views likes dislikes uploadedBy createdAt viewedBy");
+        const videos = await Video.find().populate("uploadedBy", "name email").sort({ createdAt: -1 }).select("title description thumbnail views likes dislikes uploadedBy createdAt viewedBy");
         return res.status(200).json(videos);
     }
     catch (err) {
@@ -142,7 +142,7 @@ export const searchVideos = async (req: Request, res: Response) => {
         }
 
         const videos = await Video.find(filter)
-            .populate("uploadedBy", "username email")
+            .populate("uploadedBy", "name email")
             .sort({ createdAt: -1 });
 
         if (!videos.length) {
@@ -185,7 +185,7 @@ export const editVideo = async (req: Request, res: Response) => {
                 ...(category && { category })
             },
             { new: true } // return updated document
-        ).populate("uploadedBy", "username email");
+        ).populate("uploadedBy", "name email");
         // console.log(updatedVideo);
         if (!updatedVideo) {
             return res.status(404).json({ message: "Video not found" });

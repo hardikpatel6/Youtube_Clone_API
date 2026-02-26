@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Search, Menu, Video, Bell, UserCircle } from "lucide-react";
 
 const Navbar = ({ toggleSidebar }) => {
-  const { user, setUser } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -16,8 +16,7 @@ const Navbar = ({ toggleSidebar }) => {
     } catch (err) {
       console.error("Logout failed API side", err);
     }
-    localStorage.removeItem("accessToken");
-    setUser(null);
+    logout();
     navigate("/login");
   };
 
@@ -95,12 +94,17 @@ const Navbar = ({ toggleSidebar }) => {
               <Bell size={24} className="text-gray-800" />
             </button>
             <div className="relative">
-              <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                {user.name ? user.name.charAt(0).toUpperCase() : <UserCircle size={24} />}
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="hidden sm:block text-sm font-medium text-gray-700">
+                  {user.name}
+                </span>
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  {user.name ? user.name.charAt(0).toUpperCase() : <UserCircle size={24} />}
+                </button>
+              </div>
 
               {/* Profile Dropdown Menu */}
               {showProfileMenu && (
