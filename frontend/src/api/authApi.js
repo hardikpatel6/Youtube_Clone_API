@@ -6,3 +6,5 @@ export const loginApi = (data) => API.post("/users/login", data);
 export const refreshTokenApi = () => API.post("/users/refreshToken");
 export const logoutApi = () => API.post("/users/logout");
 export const getProfileApi = () => API.get("/users/profile");
+export const forgotPasswordApi = (data) => API.post("/users/forgot-password", data);
+export const resetPasswordApi = (resetToken, data) => API.post(`/users/reset-password/${resetToken}`, data);

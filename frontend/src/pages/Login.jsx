@@ -97,6 +97,11 @@ const Login = () => {
                 className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-xl focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm bg-gray-50 hover:bg-gray-100 transition-colors"
                 placeholder="Password"
               />
+              <div className="flex justify-end mt-2">
+                <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                  Forgot your password?
+                </Link>
+              </div>
             </div>
           </div>
 

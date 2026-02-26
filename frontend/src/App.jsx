@@ -9,6 +9,8 @@ import Navbar from "./component/Navbar";
 import Sidebar from "./component/Sidebar";
 import Upload from "./pages/Upload";
 import EditPage from "./pages/EditPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -39,8 +41,8 @@ function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, [location.pathname]);
 
-  const hideBarsRoutes = ["/login", "/signup"];
-  const shouldHideBars = hideBarsRoutes.includes(location.pathname);
+  const hideBarsRoutes = ["/login", "/signup", "/forgot-password", "/reset-password"];
+  const shouldHideBars = hideBarsRoutes.some(route => location.pathname.startsWith(route));
 
   return (
     <div className="min-h-screen flex flex-col bg-white overflow-hidden w-full h-full">
@@ -52,10 +54,12 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
             {/* Keeping everything Protected but allowing viewing, wait original has everything Protected except VideoPlayer and Login/Signup */}
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/videos/:id" element={<VideoPlayer />} />
+            <Route path="/videos/:id" element={<ProtectedRoute><VideoPlayer /></ProtectedRoute>} />
             <Route path="/videos/edit/:id" element={<ProtectedRoute><EditPage /></ProtectedRoute>} />
           </Routes>
         </main>
