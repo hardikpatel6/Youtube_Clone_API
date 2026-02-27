@@ -370,7 +370,7 @@ const getAllAdmins = async (req: Request, res: Response): Promise<void> => {
 }
 
 const forgotPassword = async (req: Request, res: Response): Promise<void> => {
-    console.log("forgot password route hit ");
+    console.log("forgot password route hit");
     try {
         const user = await User.findOne({ email: req.body.email });
         console.log("user", user);
