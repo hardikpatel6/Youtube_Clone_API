@@ -396,10 +396,12 @@ const forgotPassword = async (req: Request, res: Response): Promise<void> => {
 
         // Create reset url
         const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-        const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+        console.log("frontendUrl", frontendUrl);
+        const resetUrl = `${frontendUrl}/reset-password/${resetToken}`; 
+        console.log("resetUrl", resetUrl);
 
         const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please go to this link to reset your password: \n\n ${resetUrl}`;
-
+        console.log("message", message);    
         try {
             await sendEmail({
                 email: user.email,
