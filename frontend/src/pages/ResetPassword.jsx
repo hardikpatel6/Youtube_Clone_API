@@ -27,6 +27,7 @@ const ResetPassword = () => {
         setLoading(true);
         try {
             const res = await resetPasswordApi(resetToken, { password });
+            console.log("res",res.data);
             setMessage(res.data.message || "Password updated successfully");
             setTimeout(() => {
                 navigate("/login");
