@@ -73,7 +73,7 @@ const uploadVideoFile = async (req, res) => {
 exports.uploadVideoFile = uploadVideoFile;
 const showAllVideos = async (req, res) => {
     try {
-        const videos = await videoModel_1.default.find().populate("uploadedBy", "username email").sort({ createdAt: -1 }).select("title description thumbnail views likes dislikes uploadedBy createdAt viewedBy");
+        const videos = await videoModel_1.default.find().populate("uploadedBy", "name email").sort({ createdAt: -1 }).select("title description thumbnail views likes dislikes uploadedBy createdAt viewedBy");
         return res.status(200).json(videos);
     }
     catch (err) {
@@ -108,7 +108,7 @@ const searchVideos = async (req, res) => {
             filter.uploadedBy = uploadedBy; // exact ObjectId match
         }
         const videos = await videoModel_1.default.find(filter)
-            .populate("uploadedBy", "username email")
+            .populate("uploadedBy", "name email")
             .sort({ createdAt: -1 });
         if (!videos.length) {
             return res.status(404).json({ message: "No videos found" });
@@ -124,7 +124,7 @@ exports.searchVideos = searchVideos;
 const getVideoById = async (req, res) => {
     try {
         const videoId = req.params.id;
-        const video = await videoModel_1.default.findById(videoId).populate("uploadedBy", "username email");
+        const video = await videoModel_1.default.findById(videoId).populate("uploadedBy", "name email");
         if (!video) {
             return res.status(404).json({ message: "Video not found" });
         }
@@ -148,7 +148,7 @@ const editVideo = async (req, res) => {
             ...(tags && { tags: Array.isArray(tags) ? tags : tags.split(",").map((t) => t.trim()) }),
             ...(category && { category })
         }, { new: true } // return updated document
-        ).populate("uploadedBy", "username email");
+        ).populate("uploadedBy", "name email");
         // console.log(updatedVideo);
         if (!updatedVideo) {
             return res.status(404).json({ message: "Video not found" });

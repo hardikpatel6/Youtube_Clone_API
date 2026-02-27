@@ -11,7 +11,7 @@ export const addComment = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?._id;
     const { videoId } = req.params;
-    const { commentText } = req.body;
+    const { commentText, parentCommentId } = req.body;
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
@@ -21,12 +21,28 @@ export const addComment = async (req: AuthenticatedRequest, res: Response) => {
 
     const videoExists = await Video.findById(videoId);
     if (!videoExists) return res.status(404).json({ message: "Video not found" });
-
+    if (parentCommentId) {
+      const parentComment = await Comment.findById(parentCommentId);
+      if (!parentComment) return res.status(404).json({ message: "Parent comment not found" });
+      // If the comment we are replying to ALREADY has a parent, 
+      // it means we are replying to a reply. 
+      // Set the true parent to the ROOT comment so the tree stays 1 level deep.
+      const trueParentId = parentComment.parentCommentId ? parentComment.parentCommentId : parentCommentId;
+      const comment = await Comment.create({
+        _id: new mongoose.Types.ObjectId(),
+        video_id: videoId,
+        user_id: userId,
+        commentText,
+        parentCommentId: trueParentId // Forces it to the root
+      });
+      return res.status(201).json({ message: "Comment added successfully", comment });
+    }
     const comment = await Comment.create({
       _id: new mongoose.Types.ObjectId(),
       video_id: videoId,
       user_id: userId,
       commentText,
+      parentCommentId: parentCommentId || null
     });
 
     res.status(201).json({ message: "Comment added successfully", comment });
@@ -178,7 +194,7 @@ export const dislikeComment = async (req: AuthenticatedRequest, res: Response) =
     const isDisliked = dislikedBy.includes(userId.toString());
 
     // If already disliked, remove dislike
-     if (isDisliked) {
+    if (isDisliked) {
       const updatedComment = await Comment.findByIdAndUpdate(
         id,
         { $pull: { dislikedBy: userId } },

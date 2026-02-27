@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllAdmins = exports.deleteUser = exports.updateUser = exports.getOneUser = exports.getAllUsers = exports.getAllUsersAndAdmin = exports.refreshAccessToken = exports.logoutUser = exports.profileUser = exports.loginUser = exports.registerUser = void 0;
+exports.resetPassword = exports.forgotPassword = exports.getAllAdmins = exports.deleteUser = exports.updateUser = exports.getOneUser = exports.getAllUsers = exports.getAllUsersAndAdmin = exports.refreshAccessToken = exports.logoutUser = exports.profileUser = exports.loginUser = exports.registerUser = exports.googleLogin = void 0;
 const userModel_1 = __importDefault(require("../models/userModel"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -13,10 +13,81 @@ const tokenUtils_1 = require("../utils/tokenUtils");
 dotenv_1.default.config();
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "patel";
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "hardik";
+const googleAuth_1 = require("../utils/googleAuth");
+const crypto_1 = __importDefault(require("crypto"));
+const sendEmail_1 = __importDefault(require("../utils/sendEmail"));
+const googleLogin = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        if (!idToken) {
+            res.status(400).json({ message: "Google token missing" });
+            return;
+        }
+        // 1️⃣ Verify Google Token
+        const payload = await (0, googleAuth_1.verifyGoogleToken)(idToken);
+        if (!payload) {
+            res.status(401).json({ message: "Invalid Google token" });
+            return;
+        }
+        const { sub, email, name } = payload;
+        if (!email) {
+            res.status(400).json({ message: "Google account has no email" });
+            return;
+        }
+        // 2️⃣ Check if user exists
+        let user = await userModel_1.default.findOne({ email });
+        if (!user) {
+            // 3️⃣ Create new Google user
+            user = await userModel_1.default.create({
+                name,
+                email,
+                googleId: sub,
+                isGoogleUser: true,
+                role: "user"
+            });
+        }
+        // 4️⃣ Generate tokens (reuse your existing logic)
+        const payloadJwt = {
+            sub: user._id.toString(),
+            email: user.email,
+            role: user.role
+        };
+        const accessToken = (0, tokenUtils_1.signAccessToken)(payloadJwt);
+        const refreshToken = (0, tokenUtils_1.signRefreshToken)(payloadJwt);
+        user.refreshToken = refreshToken;
+        await user.save();
+        (0, tokenUtils_1.setRefreshCookie)(res, refreshToken);
+        res.status(200).json({
+            message: "Google login successful",
+            accessToken,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            },
+            role: user.role
+        });
+    }
+    catch (error) {
+        console.error("Google login error:", error);
+        res.status(500).json({ message: "Google login failed" });
+    }
+};
+exports.googleLogin = googleLogin;
 const registerUser = async (req, res) => {
     let { name, email, password, role } = req.body;
     if (!name || !email || !password) {
         res.status(400).send("All Fields Are Required ");
+    }
+    // 2️⃣ Normalize email
+    email = email.toLowerCase().trim();
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+\.(com|in|gov)$/;
+    // 3️⃣ Validate email format (strong validation)
+    if (!emailRegex.test(email)) {
+        res.status(400).json({
+            message: "Email must contain @ and end with .com, .in, or .gov",
+        });
+        return;
     }
     const hashedPassword = await bcryptjs_1.default.hash(password, 10);
     try {
@@ -60,7 +131,11 @@ const loginUser = async (req, res) => {
             res.status(401).json({ message: "Invalid email or password." });
             return;
         }
-        const isPasswordValid = await bcryptjs_1.default.compare(password, user.password.toString());
+        if (user.isGoogleUser) {
+            res.status(400).json({ message: "Use Google Sign-In for this account" });
+            return;
+        }
+        const isPasswordValid = await bcryptjs_1.default.compare(password, user.password?.toString() || "");
         if (!isPasswordValid) {
             res.status(401).json({ message: "Invalid email or password." });
             return;
@@ -282,3 +357,91 @@ const getAllAdmins = async (req, res) => {
     }
 };
 exports.getAllAdmins = getAllAdmins;
+const forgotPassword = async (req, res) => {
+    console.log("forgot password route hit");
+    try {
+        const user = await userModel_1.default.findOne({ email: req.body.email });
+        console.log("user", user);
+        if (!user) {
+            res.status(404).json({ message: "There is no user with that email address." });
+            return;
+        }
+        if (user.isGoogleUser) {
+            res.status(400).json({ message: "This email is associated with a Google account. Please use Google Sign-In." });
+            return;
+        }
+        // Generate token
+        const resetToken = crypto_1.default.randomBytes(20).toString("hex");
+        // Hash token and set to resetPasswordToken field
+        user.resetPasswordToken = crypto_1.default.createHash("sha256").update(resetToken).digest("hex");
+        // Set expire time (10 minutes)
+        user.resetPasswordExpire = new Date(Date.now() + 10 * 60 * 1000);
+        await user.save();
+        // Create reset url
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        console.log("frontendUrl", frontendUrl);
+        const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+        console.log("resetUrl", resetUrl);
+        const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please go to this link to reset your password: \n\n ${resetUrl}`;
+        console.log("message", message);
+        try {
+            await (0, sendEmail_1.default)({
+                email: user.email,
+                subject: "Password Reset Token",
+                message,
+            });
+            res.status(200).json({ message: "Email sent successfully" });
+        }
+        catch (error) {
+            console.error(error);
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+            await user.save();
+            res.status(500).json({ message: "Email could not be sent" });
+        }
+    }
+    catch (error) {
+        console.error("Forgot password error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+exports.forgotPassword = forgotPassword;
+const resetPassword = async (req, res) => {
+    try {
+        const { resetToken } = req.params;
+        const { password } = req.body || {};
+        if (!resetToken) {
+            res.status(400).json({ message: "Reset token missing" });
+            return;
+        }
+        if (!password) {
+            res.status(400).json({ message: "Please provide a new password" });
+            return;
+        }
+        const hashedToken = crypto_1.default
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
+        const user = await userModel_1.default.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpire: { $gt: new Date() },
+        });
+        if (!user) {
+            res.status(400).json({ message: "Invalid token or expired" });
+            return;
+        }
+        user.password = await bcryptjs_1.default.hash(password, 10);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        // 🔐 Invalidate sessions (since you use refresh tokens)
+        user.refreshToken = undefined;
+        await user.save();
+        res.clearCookie("refreshToken");
+        res.status(200).json({ message: "Password updated successfully" });
+    }
+    catch (error) {
+        console.error("Reset password error:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+exports.resetPassword = resetPassword;

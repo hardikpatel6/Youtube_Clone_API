@@ -13,7 +13,7 @@ const addComment = async (req, res) => {
     try {
         const userId = req.user?._id;
         const { videoId } = req.params;
-        const { commentText } = req.body;
+        const { commentText, parentCommentId } = req.body;
         if (!userId)
             return res.status(401).json({ message: "Unauthorized" });
         if (!mongoose_1.default.Types.ObjectId.isValid(videoId)) {
@@ -27,6 +27,7 @@ const addComment = async (req, res) => {
             video_id: videoId,
             user_id: userId,
             commentText,
+            parentCommentId: parentCommentId || null
         });
         res.status(201).json({ message: "Comment added successfully", comment });
     }

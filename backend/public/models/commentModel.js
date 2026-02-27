@@ -52,6 +52,11 @@ const commentSchema = new mongoose_1.Schema({
     },
     likedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
     dislikedBy: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "User" }],
+    parentCommentId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Comment",
+        default: null
+    }
 }, { timestamps: true });
 commentSchema.virtual("likesCount").get(function () {
     return this.likedBy?.length ?? 0;

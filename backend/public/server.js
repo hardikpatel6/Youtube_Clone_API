@@ -16,7 +16,7 @@ const app = (0, express_1.default)();
 dotenv_1.default.config();
 const port = process.env.PORT || 4000;
 app.use((0, cors_1.default)({
-    origin: "http://localhost:5173", // frontend URL
+    origin: ["http://localhost:5173", "https://youtube-clone-api-sigma.vercel.app"], // frontend URL
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

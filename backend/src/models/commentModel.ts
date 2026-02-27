@@ -9,6 +9,7 @@ export interface IComment {
     dislike?: number;
     likedBy?: Types.ObjectId[]; // array of user _id who liked the video
     dislikedBy?: Types.ObjectId[];
+    parentCommentId?: Types.ObjectId;
 }
 
 const commentSchema = new Schema<IComment>({
@@ -29,6 +30,11 @@ const commentSchema = new Schema<IComment>({
     },
     likedBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
     dislikedBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    parentCommentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Comment",
+        default: null
+    }
 }, { timestamps: true });
 
 commentSchema.virtual("likesCount").get(function () {

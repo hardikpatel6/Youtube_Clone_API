@@ -8,11 +8,18 @@ const userSchema = new mongoose_1.Schema({
     },
     email: {
         type: String,
-        required: true
+        required: true,
     },
     password: {
         type: String,
-        required: true
+        required: false
+    },
+    googleId: {
+        type: String
+    },
+    isGoogleUser: {
+        type: Boolean,
+        default: false
     },
     role: {
         type: String,
@@ -21,7 +28,9 @@ const userSchema = new mongoose_1.Schema({
     },
     refreshToken: {
         type: String
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
 }, { timestamps: true });
 const User = (0, mongoose_1.model)('User', userSchema);
 exports.default = User;
